@@ -1,0 +1,5 @@
+{
+    "python-envs.defaultEnvManager": "ms-python.python:system",
+    "python.defaultInterpreterPath": "c:\\AI agent project\\venv\\Scripts\\python.exe",
+    "python.analysis.extraPaths": ["c:\\AI agent project\\venv\\Lib\\site-packages"]
+}
