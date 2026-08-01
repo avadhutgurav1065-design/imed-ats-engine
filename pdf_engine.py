@@ -1,4 +1,4 @@
-import re
+import textwrap
 from fpdf import FPDF
 
 class PDFReport(FPDF):
@@ -17,13 +17,12 @@ class PDFReport(FPDF):
 def sanitize_pdf_text(text):
     if not text:
         return "N/A"
-        
+    
     text = str(text)
+    # Nuke structural breaks
+    text = text.replace('\t', ' ').replace('\r', '').replace('\n', ' ')
     
-    # 1. NUKE TABS AND CARRIAGE RETURNS (The #1 cause of this fpdf math crash)
-    text = text.replace('\t', '    ').replace('\r', '')
-    
-    # 2. Replace typography that crashes Helvetica
+    # Force replace typography
     replacements = {
         '“': '"', '”': '"', '‘': "'", '’': "'", 
         '—': '-', '–': '-', '\u2022': '-', '\u2013': '-', '\u2014': '-', '…': '...'
@@ -31,63 +30,57 @@ def sanitize_pdf_text(text):
     for k, v in replacements.items():
         text = text.replace(k, v)
         
-    # 3. STRICT ASCII ENFORCEMENT (Vaporizes emojis and zero-width spaces)
+    # Enforce absolute ASCII compliance
     text = text.encode('ascii', 'ignore').decode('ascii')
-    
-    # 4. AGGRESSIVE STRING BREAKING (Uses regex to keep newlines but break huge words)
-    words = re.split(r'(\s+)', text)
-    safe_words = []
-    for w in words:
-        if len(w) > 65 and not w.isspace():
-            safe_words.append(w[:62] + '...')
-        else:
-            safe_words.append(w)
-            
-    final_text = "".join(safe_words).strip()
-    return final_text if final_text else "N/A"
+    return text
 
 def create_pdf_report(result, resume_name):
     pdf = PDFReport()
     pdf.add_page()
     pdf.set_auto_page_break(auto=True, margin=15)
     
-    pdf.set_font('Helvetica', 'B', 12)
+    # THE KILL SHOT: Custom Text Wrapper bypassing multi_cell completely
+    def write_safe_text(text, is_bold=False, size=10):
+        pdf.set_font('Helvetica', 'B' if is_bold else '', size)
+        clean_text = sanitize_pdf_text(text)
+        
+        # Python forces the break at 85 chars. FPDF does no math.
+        lines = textwrap.wrap(clean_text, width=85, break_long_words=True)
+        
+        if not lines:
+            lines = [" "]
+            
+        for line in lines:
+            # We use standard cell() which just prints the pre-cut line and moves down
+            pdf.cell(0, 6, line, new_x="LMARGIN", new_y="NEXT")
+
     pdf.set_text_color(50, 50, 50)
     
-    # Helper to safely add cells without throwing empty string errors
-    def safe_cell(text):
-        pdf.cell(0, 8, sanitize_pdf_text(text), new_x="LMARGIN", new_y="NEXT")
-        
-    safe_cell(f'Candidate Resume: {resume_name}')
-    safe_cell(f'ATS Match Score: {result.get("match_score", 0)}%')
-    safe_cell(f'Readability Index: {result.get("ats_readability", 0)}%')
+    write_safe_text(f'Candidate Resume: {resume_name}', is_bold=True, size=12)
+    write_safe_text(f'ATS Match Score: {result.get("match_score", 0)}%', is_bold=True, size=12)
+    write_safe_text(f'Readability Index: {result.get("ats_readability", 0)}%', is_bold=True, size=12)
     pdf.ln(5)
     
     pdf.set_font('Helvetica', 'B', 11)
     pdf.cell(0, 8, 'Executive Recruiter Verdict:', new_x="LMARGIN", new_y="NEXT")
-    pdf.set_font('Helvetica', '', 10)
-    pdf.multi_cell(0, 6, sanitize_pdf_text(result.get('recruiter_verdict', '')))
+    write_safe_text(result.get('recruiter_verdict', ''))
     pdf.ln(5)
     
     pdf.set_font('Helvetica', 'B', 11)
     pdf.cell(0, 8, 'Strategic Action Plan:', new_x="LMARGIN", new_y="NEXT")
-    pdf.set_font('Helvetica', '', 10)
     for idx, step in enumerate(result.get('action_plan', []), 1):
-        pdf.multi_cell(0, 6, sanitize_pdf_text(f"{idx}. {step}"))
+        write_safe_text(f"{idx}. {step}")
     pdf.ln(5)
     
     pdf.set_font('Helvetica', 'B', 11)
     pdf.cell(0, 8, 'Optimized Resume Bullet Suggestions:', new_x="LMARGIN", new_y="NEXT")
-    pdf.set_font('Courier', '', 9)
     for bullet in result.get('optimized_bullets', []):
-        pdf.multi_cell(0, 6, sanitize_pdf_text(f"- {bullet}"))
-        
-    # I also noticed your Interview Questions were missing from the old PDF output. Added them here.
+        write_safe_text(f"- {bullet}")
     pdf.ln(5)
+    
     pdf.set_font('Helvetica', 'B', 11)
     pdf.cell(0, 8, 'Targeted Interview Questions:', new_x="LMARGIN", new_y="NEXT")
-    pdf.set_font('Helvetica', '', 10)
     for idx, q in enumerate(result.get('interview_questions', []), 1):
-        pdf.multi_cell(0, 6, sanitize_pdf_text(f"Q{idx}: {q}"))
+        write_safe_text(f"Q{idx}: {q}")
         
     return pdf.output()
