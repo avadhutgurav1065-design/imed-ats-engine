@@ -24,49 +24,70 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# 2. Dynamic Enterprise UI (Light/Dark Mode Safe)
 def apply_enterprise_ui():
     st.markdown("""
     <style>
-        /* 1. Dynamic Input Fields */
-        .stTextInput input, .stTextArea textarea, .stChatInputContainer {
-            background-color: var(--secondary-background-color) !important;
-            color: var(--text-color) !important;
-            border: 1px solid rgba(150, 150, 150, 0.2) !important;
-            border-radius: 10px !important;
-            transition: all 0.2s ease-in-out;
-        }
-        
-        /* 2. Premium Focus States */
-        .stTextInput input:focus, .stTextArea textarea:focus {
-            border-color: #6366F1 !important;
-            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2) !important;
+        /* 1. Force Absolute Black Background */
+        .stApp {
+            background-color: #000000 !important;
         }
 
-        /* 3. Gradient Buttons */
+        /* 2. Deep Black Input Fields & Neon Hover */
+        .stTextInput input, .stTextArea textarea, .stChatInputContainer {
+            background-color: #111111 !important;
+            color: #FFFFFF !important;
+            border: 1px solid #333333 !important;
+            border-radius: 10px !important;
+            transition: all 0.3s ease-in-out;
+        }
+        
+        .stTextInput input:hover, .stTextArea textarea:hover {
+            border-color: #4f46e5 !important;
+        }
+        
+        /* Neon Glow Focus State */
+        .stTextInput input:focus, .stTextArea textarea:focus {
+            border-color: #6366F1 !important;
+            box-shadow: 0 0 12px rgba(99, 102, 241, 0.5) !important;
+            outline: none !important;
+        }
+
+        /* 3. High-End Interactive Buttons */
         .stButton>button {
-            background: linear-gradient(135deg, #6366F1 0%, #4F46E5 100%) !important;
-            color: white !important;
-            border: none !important;
+            background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%) !important;
+            color: #FFFFFF !important;
+            border: 1px solid #4f46e5 !important;
             border-radius: 8px !important;
             font-weight: 600 !important;
             letter-spacing: 0.5px !important;
-            transition: all 0.2s ease-in-out;
+            transition: all 0.3s ease-in-out;
         }
         
         .stButton>button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4) !important;
+            background: linear-gradient(135deg, #312e81 0%, #4f46e5 100%) !important;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.6) !important;
+            border-color: #818cf8 !important;
         }
         
         /* 4. Chat Message Readability */
         .stChatMessage {
-            background-color: var(--secondary-background-color) !important;
-            color: var(--text-color) !important;
+            background-color: #111111 !important;
+            color: #FFFFFF !important;
             border-radius: 10px !important;
             padding: 15px !important;
             margin-bottom: 10px !important;
-            border: 1px solid rgba(150, 150, 150, 0.1) !important;
+            border: 1px solid #333333 !important;
+            transition: all 0.3s ease;
+        }
+        
+        .stChatMessage:hover {
+            border-color: #4f46e5 !important;
+        }
+        
+        /* Force Text Colors to White */
+        h1, h2, h3, h4, h5, h6, p, span, div {
+            color: #FFFFFF !important;
         }
     </style>
     """, unsafe_allow_html=True)
