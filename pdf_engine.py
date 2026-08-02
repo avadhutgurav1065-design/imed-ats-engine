@@ -83,4 +83,4 @@ def create_pdf_report(result, resume_name):
     for idx, q in enumerate(result.get('interview_questions', []), 1):
         write_safe_text(f"Q{idx}: {q}")
         
-    return pdf.output()
+    return bytes(pdf.output())
