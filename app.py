@@ -8,6 +8,7 @@ import numpy as np
 import os
 import csv
 from datetime import datetime
+import ast
 
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
@@ -80,7 +81,7 @@ except Exception:
     GEMINI_API_KEY = "PLACEHOLDER_KEY"
 
 # ==============================================================================
-# 3. ADVANCED INTELLIGENCE ENGINE (Gemini 3.6 Flash)
+# 3. ADVANCED INTELLIGENCE ENGINE
 # ==============================================================================
 @st.cache_resource
 def load_placement_engine():
@@ -159,7 +160,7 @@ with st.sidebar:
 
 
 # ==============================================================================
-# PAGE 1: UNIFIED WORKSPACE (Upload Resume + Plain Text JD + Analyze Button)
+# PAGE 1: UNIFIED WORKSPACE
 # ==============================================================================
 if st.session_state.page == "Workspace":
     st.caption("CANDIDATE WORKSPACE")
@@ -186,7 +187,6 @@ if st.session_state.page == "Workspace":
 
     st.markdown("<br>", unsafe_allow_html=True)
     
-    # --- DIRECT ANALYZE BUTTON RIGHT UNDER THE INPUTS ---
     has_jd = "current_jd" in st.session_state and st.session_state.current_jd.strip()
     
     if st.button("🚀 Run Comprehensive ATS & Gap Analysis", use_container_width=True):
@@ -212,7 +212,6 @@ if st.session_state.page == "Workspace":
                     readability = result.get("ats_readability", 90)
                     keyword_status = result.get("keyword_status", "Optimized")
                     
-                    # Log data for Admin Dashboard
                     missing_list = result.get("missing_skills", ["General Skills"])
                     top_missing = missing_list[0] if missing_list else "None"
                     log_student_data(selected_resume_name, score, top_missing)
@@ -343,7 +342,19 @@ if st.session_state.page == "Workspace":
                     USER QUESTION: {user_query}
                     """
                     response = chat_llm.invoke(chat_prompt)
-                    ai_reply = response.content
+                    raw_content = response.content
+                    
+                    # --- FIX: Extract string if LangChain returns a list of JSON blocks ---
+                    if isinstance(raw_content, list):
+                        ai_reply = "".join([block.get("text", "") for block in raw_content if isinstance(block, dict)])
+                    elif isinstance(raw_content, str) and raw_content.startswith("[{'type'"):
+                        try:
+                            parsed_content = ast.literal_eval(raw_content)
+                            ai_reply = "".join([block.get("text", "") for block in parsed_content if isinstance(block, dict)])
+                        except:
+                            ai_reply = raw_content
+                    else:
+                        ai_reply = str(raw_content)
                     
                     st.markdown(ai_reply)
                     st.session_state.messages.append({"role": "assistant", "content": ai_reply})
