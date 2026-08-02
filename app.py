@@ -24,96 +24,54 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom Glassmorphism Styling
-st.markdown("""
-<style>
-    /* Global Base */
-    .stApp {
-        background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%);
-        color: #F8FAFC;
-        font-family: 'Inter', sans-serif;
-    }
-    
-    #MainMenu {visibility: hidden;}
-    footer {visibility: hidden;}
-    header {visibility: hidden;}
+# 2. Dynamic Enterprise UI (Light/Dark Mode Safe)
+def apply_enterprise_ui():
+    st.markdown("""
+    <style>
+        /* 1. Dynamic Input Fields */
+        .stTextInput input, .stTextArea textarea, .stChatInputContainer {
+            background-color: var(--secondary-background-color) !important;
+            color: var(--text-color) !important;
+            border: 1px solid rgba(150, 150, 150, 0.2) !important;
+            border-radius: 10px !important;
+            transition: all 0.2s ease-in-out;
+        }
+        
+        /* 2. Premium Focus States */
+        .stTextInput input:focus, .stTextArea textarea:focus {
+            border-color: #6366F1 !important;
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2) !important;
+        }
 
-    /* Premium Glass Panels */
-    .glass-panel {
-        background: rgba(255, 255, 255, 0.03);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(40px);
-        -webkit-backdrop-filter: blur(40px);
-        border-radius: 24px;
-        padding: 28px;
-        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-        transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
-        margin-bottom: 24px;
-    }
-    
-    .glass-panel:hover {
-        border-color: rgba(99, 102, 241, 0.6);
-        box-shadow: 0 15px 45px -12px rgba(99, 102, 241, 0.4);
-        transform: translateY(-5px);
-    }
+        /* 3. Gradient Buttons */
+        .stButton>button {
+            background: linear-gradient(135deg, #6366F1 0%, #4F46E5 100%) !important;
+            color: white !important;
+            border: none !important;
+            border-radius: 8px !important;
+            font-weight: 600 !important;
+            letter-spacing: 0.5px !important;
+            transition: all 0.2s ease-in-out;
+        }
+        
+        .stButton>button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4) !important;
+        }
+        
+        /* 4. Chat Message Readability */
+        .stChatMessage {
+            background-color: var(--secondary-background-color) !important;
+            color: var(--text-color) !important;
+            border-radius: 10px !important;
+            padding: 15px !important;
+            margin-bottom: 10px !important;
+            border: 1px solid rgba(150, 150, 150, 0.1) !important;
+        }
+    </style>
+    """, unsafe_allow_html=True)
 
-    /* Streamlit Component Overrides */
-    div[data-testid="stFileUploader"] {
-        background: rgba(255, 255, 255, 0.05) !important;
-        border: 1px dashed rgba(255, 255, 255, 0.2) !important;
-        backdrop-filter: blur(30px);
-        border-radius: 20px;
-        padding: 24px;
-        transition: all 0.3s ease;
-    }
-    
-    div[data-testid="stFileUploader"]:hover {
-        border-color: rgba(99, 102, 241, 0.8) !important;
-        background: rgba(255, 255, 255, 0.08) !important;
-    }
-    
-    div[data-testid="stTextArea"] textarea, div[data-testid="stChatInput"] textarea {
-        background-color: rgba(255, 255, 255, 0.05) !important;
-        color: #F8FAFC !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
-        border-radius: 16px !important;
-        padding: 16px !important;
-        backdrop-filter: blur(20px);
-        box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
-    }
-    
-    div[data-testid="stTextArea"] textarea:focus, div[data-testid="stChatInput"] textarea:focus {
-        border-color: #6366F1 !important;
-        box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.3) !important;
-    }
-
-    div[data-testid="stButton"] button {
-        background: linear-gradient(135deg, rgba(99, 102, 241, 0.8) 0%, rgba(168, 85, 247, 0.8) 100%) !important;
-        border: 1px solid rgba(255, 255, 255, 0.2) !important;
-        border-radius: 16px !important;
-        color: white !important;
-        font-weight: 600 !important;
-        letter-spacing: 0.5px;
-        backdrop-filter: blur(10px);
-        transition: all 0.3s ease !important;
-    }
-
-    div[data-testid="stButton"] button:hover {
-        transform: scale(1.02);
-        box-shadow: 0 10px 20px rgba(99, 102, 241, 0.4);
-    }
-
-    div[data-testid="stChatMessage"] {
-        background: rgba(255, 255, 255, 0.02) !important;
-        border: 1px solid rgba(255, 255, 255, 0.05);
-        backdrop-filter: blur(25px);
-        border-radius: 16px;
-        padding: 15px;
-        margin-bottom: 10px;
-    }
-</style>
-""", unsafe_allow_html=True)
-
+apply_enterprise_ui()
 # 2. Secure API Configuration
 try:
     GEMINI_API_KEY = st.secrets["GEMINI_API_KEY"]
